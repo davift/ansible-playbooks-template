@@ -1,0 +1,12 @@
+---
+- name: REMOVE USERS
+  hosts: all
+  become: true
+  gather_facts: false
+  strategy: free
+
+  tasks:
+    - name: REMOVE USER
+      user:
+        name: "{{ user_name }}"
+        state: absent 

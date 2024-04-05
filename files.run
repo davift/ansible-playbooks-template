@@ -1,0 +1,21 @@
+#!/bin/bash
+
+source boxes.sh
+
+box_out "MOVING FILES"
+
+read -e -p "Enter the target [all]: " TARGET
+[ -z "$TARGET" ] && TARGET="all"
+
+read -s -p "Ansible password: " PASS
+echo ""
+
+box_dryrun
+ansible-playbook files.yaml --limit $TARGET --extra-vars "ansible_become_pass=$PASS" --check || box_failed
+
+box_run
+read -p "Dry run completed. Press any key to run..."
+ansible-playbook files.yaml --limit $TARGET --extra-vars "ansible_become_pass=$PASS" || box_failed
+
+box_exited
+exit 0

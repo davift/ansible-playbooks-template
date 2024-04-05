@@ -1,0 +1,36 @@
+---
+- name: USERS AUDIT
+  hosts: all
+  become: true
+  gather_facts: true
+  strategy: free
+
+  tasks:
+    - name: USER admin - DEBIAN-BASED
+      user:
+        name: admin
+        state: present
+        shell: /bin/bash
+        groups: sudo
+        append: yes
+        # Password in hash format like in /etc/shadow:
+        password: "$y$j9T$KqS5b.W706l1qj6IBM.Wc/$K4Z42JC9JNDkLCtFyiFCYp/w/30UYtch0Afroyu..i6"
+      when: ansible_distribution == 'Debian' or ansible_distribution == "Ubuntu"
+
+    - name: USER admin - RHEL-BASED
+      user:
+        name: admin
+        state: present
+        shell: /bin/bash
+        groups: wheel
+        append: yes
+        # Password in hash format like in /etc/shadow:
+        password: "$y$j9T$KqS5b.W706l1qj6IBM.Wc/$K4Z42JC9JNDkLCtFyiFCYp/w/30UYtch0Afroyu..i6"
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: ADDING DAVI INTERNAL KEY
+      authorized_key:
+        user: admin
+        state: present
+        key: "{{ lookup('file', 'id_rsa.pub') }}"
+      ignore_errors: yes

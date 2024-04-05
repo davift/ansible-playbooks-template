@@ -1,0 +1,58 @@
+---
+- name: FILES BACKUP / RESTORE / SYNC
+  hosts: all
+  become: true
+  #debugger: always
+  serial: 1
+  order: inventory
+  gather_facts: no
+
+  pre_tasks:
+     - name: DOWNLOADING FILES (BACKUP)
+       fetch:
+         src: "{{ item }}"
+         dest: backup/
+         flat: yes
+       with_fileglob:
+         - /etc/apache2/sites-available/*
+       when:
+         - inventory_hostname == 'webserver1'
+
+    # - name: FILE SYNC (BACKUP)
+    #   synchronize:
+    #     src: /etc/ssh/
+    #     dest: backup/
+    #     mode: pull
+    #     delete: yes
+
+  tasks:
+     - name: UPLOADING FILES (RESTORE / SYNC)
+       copy:
+         src: "{{ item }}"
+         dest: /etc/apache2/sites-available/
+       with_fileglob:
+         - backup/*
+       when:
+         - inventory_hostname != 'webserver1'
+       notify: Restart_Service
+
+    # - name: FILE SYNC (RESTORE)
+    #   synchronize:
+    #     src: backup/
+    #     dest: /etc/ssh/
+    #     mode: push
+    #     delete: yes
+    #    notify: Restart_Service
+
+    # - name: FILE PERMISSIONS (REMOTE)
+    #   file:
+    #     path: /etc/ssh/
+    #     owner: root
+    #     group: root
+    #     recurse: yes
+
+  handlers:
+    - name: Restart_Service
+      service:
+        name: apache2
+        state: restarted

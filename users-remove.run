@@ -1,0 +1,25 @@
+#!/bin/bash
+
+source boxes.sh
+
+box_out "USERS AUDIT"
+
+read -e -p "Enter the target [all]: " TARGET
+[ -z "$TARGET" ] && TARGET="all"
+
+read -e -p "Enter the username to be removed: " REMOVE_USER
+[ -z "$REMOVE_USER" ] && box_failed
+
+read -s -p "Ansible password: " PASS
+echo ""
+
+box_dryrun
+ansible-playbook users-remove.yaml --limit $TARGET --extra-vars "ansible_become_pass=$PASS" -e "user_name=$REMOVE_USER" --check || box_failed
+
+box_run
+read -p "Dry run completed. Press any key to run..."
+ansible-playbook users-remove.yaml --limit $TARGET --extra-vars "ansible_become_pass=$PASS" -e "user_name=$REMOVE_USER" || box_failed
+
+box_out "Remember to remove the user from the playbook to avoid re-creating it."
+box_exited
+exit 0

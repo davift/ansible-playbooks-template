@@ -1,0 +1,34 @@
+---
+- name: APT PLAYBOOK
+  hosts: all
+  become: true
+  #debugger: always
+  #serial: 1
+  #order: inventory
+
+  pre_tasks:
+    - name: UPDATING DEBIAN/UBUNTU
+      apt:
+        update_cache: yes
+      when: ansible_distribution == 'Debian' or ansible_distribution == "Ubuntu"
+
+  tasks:
+    - name: UPGRADING DEBIAN/UBUNTU
+      apt:
+        upgrade: 'yes'
+      when: ansible_distribution == 'Debian' or ansible_distribution == "Ubuntu"
+
+    - name: UPGRADING RHEL FAMILY
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+        exclude: kernel*
+      when: ansible_facts['os_family'] == "RedHat"
+
+  post_tasks:
+    - name: CLEANING DEBIAN/UBUNTU
+      apt:
+        autoremove: 'yes'
+        autoclean: 'yes'
+      when: ansible_distribution == 'Debian' or ansible_distribution == "Ubuntu"
+

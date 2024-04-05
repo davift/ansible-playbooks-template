@@ -1,0 +1,27 @@
+#!/bin/bash
+
+source boxes.sh
+
+box_out "NEW FTP USER"
+
+read -e -p "Enter the new username: " USER
+[ -z "$USER" ] && box_failed
+
+read -s -p "Enter the password [auto if empty]: " PLAINPASS
+echo ""
+if [ -z "$PLAINPASS" ]; then
+    PLAINPASS=`uuidgen`
+	echo "Randomly generated password: $PLAINPASS"
+fi
+
+NEWPASS=`/usr/bin/openssl passwd -6 $PLAINPASS`
+NEXTUID=$((`cat users-ftp.yaml | grep 'uid:' | tail -n 1 | awk '{print $2}'`+1))
+
+sed "s/<USERNAME>/$USER/g;s/<UID>/$NEXTUID/g" users-ftp-new.template > users-ftp-new.template.tmp
+sed "s#<PASSWORDHASH>#$NEWPASS#g" -i users-ftp-new.template.tmp
+cat users-ftp-new.template.tmp >> users-ftp.yaml
+rm users-ftp-new.template.tmp
+
+box_out "Remember to run the playbook to create the user."
+box_exited
+exit 0

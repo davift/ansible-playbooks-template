@@ -1,0 +1,36 @@
+---
+- name: MYSQL USERS AND PERMISSIONS
+  hosts: all
+  become: true
+  vars:
+    # Service account "ansible"@"%"
+    - mysql_service_account_password: runtime_password_here
+    # Read & Write
+    - group_readwrite: "testDB.*:Select,Insert,Update,Delete"
+    # Read Only
+    - group_readonly: "testDB.*:Select,Show view"
+
+  pre_tasks:
+    - name: UPDATING APT
+      apt:
+        update_cache: yes
+
+    - name: INSTALL DEPENDENCY
+      apt:
+        name: python3-pymysql
+        state: latest
+
+  tasks:
+    - name: USER ACCOUNT
+      mysql_user:
+        name: "mysqluser"
+        password: "*465EA589BE60D1BB24634C38747CB8F6B59205C6"
+        encrypted: true
+        priv: "{{ group_readwrite }}"
+        host: "%"
+        state: present
+        login_user: "ansible"
+        login_password: "{{ mysql_service_account_password }}"
+        login_host: "localhost"
+      no_log: true
+

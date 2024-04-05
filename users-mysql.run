@@ -1,0 +1,24 @@
+#!/bin/bash
+
+source boxes.sh
+
+box_out "USERS AUDIT"
+
+read -e -p "Enter the target [all]: " TARGET
+[ -z "$TARGET" ] && TARGET="all"
+
+read -s -p "Enter the MySQL service account password: " MYSQLPASS
+echo ""
+
+read -s -p "Ansible password: " PASS
+echo ""
+
+box_dryrun
+ansible-playbook users-mysql.yaml --limit $TARGET --extra-vars "ansible_become_pass=$PASS"  -e "mysql_service_account_password=$MYSQLPASS" --check || box_failed
+
+box_run
+read -p "Dry run completed. Press any key to run..."
+ansible-playbook users-mysql.yaml --limit $TARGET --extra-vars "ansible_become_pass=$PASS"  -e "mysql_service_account_password=$MYSQLPASS" || box_failed
+
+box_exited
+exit 0

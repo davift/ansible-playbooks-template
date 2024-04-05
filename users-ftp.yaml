@@ -1,0 +1,26 @@
+---
+- name: FTP USERS
+  hosts: all
+  become: true
+  gather_facts: false
+  strategy: free
+
+  pre_tasks:
+    - name: CREATING GROUP ftpusers
+      group:
+        name: ftpusers
+        state: present
+        gid: 1999
+
+  tasks:
+    - name: CREATING USER ftpuser
+      user:
+        name: ftpuser
+        group: ftpusers
+        uid: 2000
+        state: present
+        password_lock: false
+        home: /opt/ftp_data/ftpuser
+        shell: /usr/sbin/nologin
+        password: "$y$j9T$KqS5b.W706l1qj6IBM.Wc/$K4Z42JC9JNDkLCtFyiFCYp/w/30UYtch0Afroyu..i6"
+

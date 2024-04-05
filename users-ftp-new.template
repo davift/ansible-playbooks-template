@@ -1,0 +1,11 @@
+    - name: CREATING USER <USERNAME>
+      user:
+        name: <USERNAME>
+        group: ftpusers
+        uid: <UID>
+        state: present
+        password_lock: false
+        home: /opt/ftp_data
+        shell: /usr/sbin/nologin
+        password: "<PASSWORDHASH>"
+

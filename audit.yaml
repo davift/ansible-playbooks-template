@@ -1,0 +1,44 @@
+---
+- name: SYSTEM AUDIT
+  hosts: all
+  become: true
+  gather_facts: true
+  strategy: free
+
+  tasks:
+    - name: AUDITING HOSTNAME CHANGES
+      hostname:
+        name: "{{ inventory_hostname }}"
+        use: systemd
+
+    - name: AUDITING HOSTS CHANGES
+      blockinfile:
+        dest: /etc/hosts
+        state: present
+        content: "{{ lookup('file', 'audit.hosts') }}"
+
+    - name: AUDITING FIREWALL RULE FOR SSH
+      community.general.ufw:
+        rule: limit
+        proto: tcp
+        port: '22'
+        src: 0.0.0.0/0
+        comment: SSH
+      when: ansible_distribution == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
+
+    - name: AUDITING FIREWALL IS ENABLED
+      community.general.ufw:
+        state: enabled
+      when: ansible_distribution == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
+
+    - name: DISABLING TCP TIMESTAMPS
+      sysctl: name={{ item.key }} value={{ item.value }} state=present
+      with_items:
+        - { key: "net.ipv4.tcp_timestamps", value: "0" }
+
+    - name: SETTING TIMEZONE TO LOCAL
+      community.general.timezone:
+        name: America/Toronto
+
+    # - name: EXECUTING RAW SHELL COMMAND
+    #   shell: "sudo systemctl restart sshd.service"

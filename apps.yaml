@@ -1,0 +1,38 @@
+---
+- name: MANAGING APPS
+  hosts: all
+  become: true
+  strategy: free
+  
+  pre_tasks:
+    - name: UPDATING APT
+      apt:
+        update_cache: yes
+
+  tasks:
+    - name: INSTALL
+      apt:
+        name: prometheus-node-exporter
+        state: latest
+
+    - name: STARTING AND ENABLING SERVICE
+      service:
+        name: prometheus-node-exporter
+        state: started
+        enabled: yes
+      ignore_errors: yes
+
+    - name: ADDING FIREWALL RULE
+      community.general.ufw:
+        rule: allow
+        delete: false
+        proto: tcp
+        src: 0.0.0.0/0
+        port: '9100'
+        comment: Health Check Monitoring
+
+  post_tasks:
+    - name: CLEANING APT
+      apt:
+        autoremove: 'yes'
+        autoclean: 'yes'	
